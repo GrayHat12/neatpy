@@ -2,8 +2,8 @@
 
 ## Source
 
-I'm following [**Efficient Evolution of Neural Networks
-through Complexification**](http://nn.cs.utexas.edu/downloads/papers/stanley.phd04.pdf) Paper for the implementation.
+I'm following [**Evolving Neural Networks through
+Augmenting Topologies**](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf) Paper for the implementation.
 
 ---
 

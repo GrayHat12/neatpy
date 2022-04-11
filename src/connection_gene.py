@@ -29,6 +29,9 @@ class ConnectionGene(Gene):
     def mutate_enabled(self):
         self.__enabled = not self.__enabled
 
+    def mutate_weight(self):
+        return super().mutate_weight()
+
     def copy(self) -> 'ConnectionGene':
         return ConnectionGene(
             from_node=self.from_node,
