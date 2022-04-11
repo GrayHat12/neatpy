@@ -1,7 +1,7 @@
 import random
 
 class Gene:
-    _INNOVATION_NUMBER: float
+    _INNOVATION_NUMBER: int
     _weight: float
 
     @property

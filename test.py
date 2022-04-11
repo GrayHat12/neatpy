@@ -42,12 +42,12 @@ def get_parent1():
         )
     )
 
-    parent1.mutate_node(parent1.connection_genes[1])
+    parent1.node_mutation(parent1.connection_genes[1])
 
-    parent1.mutate_connection(
+    parent1.connection_mutation((
         parent1.node_genes[-1],
         NodeGene(1, node_type=NodeType.INPUT)
-    )
+    ))
     return parent1
 
 
@@ -135,5 +135,6 @@ def test_connection_mutation():
 
 
 if __name__ == '__main__':
+    test_crossover()
     test_node_mutation()
     test_connection_mutation()

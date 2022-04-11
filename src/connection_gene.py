@@ -1,4 +1,5 @@
 from typing import Optional
+from config import PROBABILITY_INDIVIDUAL_WEIGHT_REASSIGNMENT, WEIGHT_RANDOM_STRENGTH, WEIGHT_RANGE, WEIGHT_SHIFT_STRENGTH
 from src.gene import Gene
 from src.node_gene import NodeGene
 import random
@@ -30,7 +31,11 @@ class ConnectionGene(Gene):
         self.__enabled = not self.__enabled
 
     def mutate_weight(self):
-        return super().mutate_weight()
+        event = random.random()
+        if PROBABILITY_INDIVIDUAL_WEIGHT_REASSIGNMENT > event:
+            self._weight = (random.random() * 2 - 1) * WEIGHT_RANDOM_STRENGTH
+        else:
+            self._weight += (random.random() * 2 - 1) * WEIGHT_SHIFT_STRENGTH
 
     def copy(self) -> 'ConnectionGene':
         return ConnectionGene(
