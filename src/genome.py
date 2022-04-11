@@ -177,6 +177,9 @@ class Genome:
         number_of_genes_in_smaller_genome = len([
             connection for connection in connections_smaller if connection is not None
         ])
+        max_innovation_number_for_smaller_genome = max([
+            connection.innovation_number for connection in connections_smaller if connection is not None
+        ])
 
         if number_of_genes_in_larger_genome < number_of_genes_in_smaller_genome:
             connections_larger, connections_smaller = connections_smaller, connections_larger
@@ -185,18 +188,19 @@ class Genome:
         disjoint_genes = 0
         average_weight_difference = 0
         equal_genes = 0
-        index = 0
+        is_disjoint = number_of_genes_in_smaller_genome > 0
 
-        for connection_a, connection_b in zip(connections_larger, connections_smaller):
-            if connection_a is None and connection_b is None:  # matching genes
+        for connection_large, connection_small in zip(connections_larger, connections_smaller):
+            if isinstance(connection_small,ConnectionGene) and isinstance(connection_large,ConnectionGene):  # matching genes
                 average_weight_difference += abs(
-                    connection_a.weight - connection_b.weight)
+                    connection_large.weight - connection_small.weight)
                 equal_genes += 1
-            elif index < number_of_genes_in_smaller_genome:  # disjoint genes
+            elif is_disjoint:  # disjoint genes
                 disjoint_genes += 1
             else:  # excess genes
                 excess_genes += 1
-            index += 1
+            if isinstance(connection_small,ConnectionGene):
+                is_disjoint = connection_small.innovation_number < max_innovation_number_for_smaller_genome
 
         average_weight_difference /= equal_genes
 
