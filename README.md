@@ -14,7 +14,7 @@ Parent 1             |  Parent 2
 ![](./plots/parent%201.svg)  |  ![](./plots/parent%202.svg)
 
 **Child**
-![Child](./child.svg)
+![Child](./plots/child.svg)
 
 > :exclamation: This is assuming both parent genomes are equally fit.
 
