@@ -1,7 +1,7 @@
 from typing import List
 
 from src.connection_gene import ConnectionGene
-from src.gene_store import CONNECTION_GENE_STORE, NODE_GENE_STORE
+from src.gene_store import CONNECTION_GENE_STORE, NODE_GENE_STORE, get_connection_innovation_number
 from src.genome import Genome
 import re
 from src.node_gene import NodeGene
@@ -57,6 +57,9 @@ class Command:
         return genome
 
     def execute_connection_update(self, genome: Genome) -> Genome:
+        if not self.connection_innovation:
+            self.connection_innovation = get_connection_innovation_number(self.from_innovation, self.to_innovation)
+        print('connection update for',self.connection_innovation)
         connection = genome.connection_genes.index(ConnectionGene(
             None, None, self.connection_innovation, enabled=self.connection_enabled, weight=self.connection_weight))
         if isinstance(self.connection_weight, float):
@@ -84,6 +87,8 @@ class Command:
         else:
             raise Exception(f"Invalid task {self.task} assigned")
 
+    def __str__(self) -> str:
+        return f"Command({self.task.name},{self.connection_innovation},{self.from_innovation},{self.to_innovation})"
 
 class GenomeConfig:
     def __init__(self, filepath: str) -> None:
@@ -178,9 +183,9 @@ class GenomeConfig:
                             ))
                             commands.append(Command(
                                 task=Task.CONNECTION_UPDATE,
-                                connection_innovation=pending[0],
-                                from_innovation=None,
-                                to_innovation=None,
+                                # connection_innovation=pending[0],
+                                from_innovation=pending[1],
+                                to_innovation=pending[2],
                                 connection_weight=pending[3],
                                 from_weight=pending[4],
                                 to_weight=pending[5],
@@ -188,9 +193,9 @@ class GenomeConfig:
                             ))
                             commands.append(Command(
                                 task=Task.CONNECTION_UPDATE,
-                                connection_innovation=connection_innovation,
-                                from_innovation=None,
-                                to_innovation=None,
+                                # connection_innovation=connection_innovation,
+                                from_innovation=pending[1],
+                                to_innovation=pending[2],
                                 connection_weight=connection_weight,
                                 from_weight=from_weight,
                                 to_weight=to_weight,
@@ -246,8 +251,11 @@ class GenomeConfig:
             genome.add_node_gene(
                 NodeGene(output, node_type=NodeType.OUTPUT)
             )
+        print("Commands",[str(command) for command in self.commands])
         for command in self.commands:
             print(command.__dict__)
+            if command.connection_innovation == 8:
+                print("HERE")
             print(str(genome))
             print(NODE_GENE_STORE)
             print(CONNECTION_GENE_STORE)

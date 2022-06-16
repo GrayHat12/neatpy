@@ -4,6 +4,7 @@ from src.genome import Genome
 
 def test_crossover():
     parent1 = GenomeConfig("./test_architectures/parent1.save").load()
+    print('Parent 1',parent1)
     parent2 = GenomeConfig("./test_architectures/parent2.save").load()
 
     plot_genome(parent1, filename='./plots/parent 1', show_disabled=False)
