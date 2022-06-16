@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple
 from config import DISTANCE_AVG_WEIGHT_DIFF_IMPORTANCE, DISTANCE_DISJOINT_GENES_IMPORTANCE, DISTANCE_EXCESS_GENES_IMPORTANCE, PROBABILITY_CONNECTION_MUTATION, PROBABILITY_CROSSOVER_CONNECTION_DISABLED, PROBABILITY_NODE_MUTATION, PROBABILITY_WEIGHT_MUTATION
 
 from src.connection_gene import ConnectionGene
+from src.gene_store import get_connection_innovation_number, get_node_innovation_number, update_connection_gene_store, update_node_gene_store
 from utils.enums import NodeType
 from src.node_gene import NodeGene
 
@@ -11,24 +12,23 @@ class Genome:
     __node_genes: List[NodeGene]
     __connection_genes: List[ConnectionGene]
 
-    def __init__(self, number_of_inputs: int, number_of_outputs: int):
-        self.__node_genes = [
-            NodeGene(node_type=NodeType.INPUT if i < number_of_inputs else NodeType.OUTPUT) for i in range(number_of_inputs+number_of_outputs)
-        ]
-        self.__connection_genes = []
-
     def __init__(self) -> None:
         self.__node_genes = []
         self.__connection_genes = []
 
     def add_node_gene(self, node_gene: NodeGene):
+        update_node_gene_store(node_gene.innovation_number)
         self.__node_genes.append(node_gene)
 
     def add_connection_gene(self, connection_gene: ConnectionGene):
+        update_connection_gene_store(connection_gene.from_node.innovation_number,
+                                     connection_gene.to_node.innovation_number, connection_gene.innovation_number)
         self.__connection_genes.append(connection_gene)
 
     def connection_mutation(self, nodes: Optional[Tuple[NodeGene, NodeGene]] = None):
-
+        """
+        Add a connection between 2 nodes
+        """
         node_from, node_to = None, None
 
         if isinstance(nodes, tuple):
@@ -65,6 +65,9 @@ class Genome:
         print("Connection Mutation Successful")
 
     def node_mutation(self, connection_to_break: Optional[ConnectionGene] = None):
+        """
+        Break a connection into two, adding a node in between
+        """
         if not isinstance(connection_to_break, ConnectionGene):
             connection_to_break = random.choice(self.__connection_genes)
 
@@ -73,18 +76,20 @@ class Genome:
                 "Node Mutation Failed, Connection is not in the genome")
 
         # Break connection only if it is not disabled
-        if not connection_to_break.enabled:
-            print("Node Mutation Failed, Connection is disabled")
-            return
+        # if not connection_to_break.enabled:
+        #     print("Node Mutation Failed, Connection is disabled")
+        #     return
 
         # Create new node
         node_a = connection_to_break.from_node
         node_b = connection_to_break.to_node
         middle_x = (node_a.x_axis + node_b.x_axis) / 2
-        new_node = self.create_node(middle_x)
+        new_node = self.create_node(middle_x, get_node_innovation_number(
+            node_a.innovation_number, node_b.innovation_number))
 
         # Disable existing connection
-        connection_to_break.mutate_enabled()
+        if connection_to_break.enabled:
+            connection_to_break.mutate_enabled()
 
         # Create new connection
         self.create_connection(node_a, new_node, weight=1)
@@ -99,17 +104,17 @@ class Genome:
         print("Weight Mutation Successful")
 
     def create_connection(self, from_node: NodeGene, to_node: NodeGene, weight: Optional[float] = None, enabled: bool = True):
+        innovation = get_connection_innovation_number(
+            from_node.innovation_number, to_node.innovation_number)
         if from_node in self.__node_genes and to_node in self.__node_genes:
             self.__connection_genes.append(
                 ConnectionGene(
-                    from_node, to_node, self.next_connection_innovation, weight=weight, enabled=enabled)
+                    from_node, to_node, innovation, weight=weight, enabled=enabled)
             )
         else:
             raise ValueError("One or more nodes are not in the genome")
 
-    def create_node(self, x_axis: float, innovation_number: Optional[int] = None):
-        if not isinstance(innovation_number, int):
-            innovation_number = self.next_node_innovation
+    def create_node(self, x_axis: float, innovation_number: int):
         new_node = NodeGene(x_axis=x_axis, innovation_number=innovation_number)
         self.__node_genes.append(new_node)
         return new_node
@@ -130,14 +135,6 @@ class Genome:
     def connection_genes(self):
         return self.__connection_genes
 
-    @property
-    def next_connection_innovation(self):
-        return len(self.connection_genes) + 1
-
-    @property
-    def next_node_innovation(self):
-        return len(self.node_genes) + 1
-
     @staticmethod
     def distance(genome_a: 'Genome', genome_b: 'Genome') -> float:
         """
@@ -155,6 +152,7 @@ class Genome:
             min([connection.innovation_number for connection in genome_a.connection_genes]),
             min([connection.innovation_number for connection in genome_b.connection_genes])
         )
+
         connections_larger = []
         connections_smaller = []
         for innovation in range(min_innovation_number, max_innovation_number+1):
@@ -177,12 +175,13 @@ class Genome:
         number_of_genes_in_smaller_genome = len([
             connection for connection in connections_smaller if connection is not None
         ])
-        max_innovation_number_for_smaller_genome = max([
-            connection.innovation_number for connection in connections_smaller if connection is not None
-        ])
 
         if number_of_genes_in_larger_genome < number_of_genes_in_smaller_genome:
             connections_larger, connections_smaller = connections_smaller, connections_larger
+
+        max_innovation_number_for_smaller_genome = max([
+            connection.innovation_number for connection in connections_smaller if connection is not None
+        ])
 
         excess_genes = 0
         disjoint_genes = 0
@@ -191,7 +190,7 @@ class Genome:
         is_disjoint = number_of_genes_in_smaller_genome > 0
 
         for connection_large, connection_small in zip(connections_larger, connections_smaller):
-            if isinstance(connection_small,ConnectionGene) and isinstance(connection_large,ConnectionGene):  # matching genes
+            if isinstance(connection_small, ConnectionGene) and isinstance(connection_large, ConnectionGene):  # matching genes
                 average_weight_difference += abs(
                     connection_large.weight - connection_small.weight)
                 equal_genes += 1
@@ -199,10 +198,16 @@ class Genome:
                 disjoint_genes += 1
             else:  # excess genes
                 excess_genes += 1
-            if isinstance(connection_small,ConnectionGene):
+            if isinstance(connection_small, ConnectionGene):
                 is_disjoint = connection_small.innovation_number < max_innovation_number_for_smaller_genome
 
         average_weight_difference /= equal_genes
+
+        print("Excess genes:", excess_genes)
+        print("Disjoint genes:", disjoint_genes)
+        print("Average weight difference:", average_weight_difference)
+        print("Number of genes in larger genome:",
+              number_of_genes_in_larger_genome)
 
         return (DISTANCE_EXCESS_GENES_IMPORTANCE*excess_genes / number_of_genes_in_larger_genome) + \
             (DISTANCE_DISJOINT_GENES_IMPORTANCE*disjoint_genes / number_of_genes_in_larger_genome) + \
@@ -239,11 +244,11 @@ class Genome:
                     [from_parent_a, from_parent_b]).copy()
                 if is_disabled and PROBABILITY_CROSSOVER_CONNECTION_DISABLED > random.random():
                     if child_gene.enabled:
-                        # if parent has disabled and probability, set child disabled
+                        # if parent has disabled gene and we fall in probability, set child disabled
                         child_gene.mutate_enabled()
                 else:
                     if not child_gene.enabled:
-                        # if not probability and child disabled, set child enabled
+                        # if we do not fall in probability and child has disabled gene, set child enabled
                         child_gene.mutate_enabled()
             else:  # Excess or disjoint gene, take all from fitter parent
                 child_gene = connection_gene.copy()
@@ -257,3 +262,13 @@ class Genome:
                     child_genome.add_connection_gene(connection_gene.copy())
 
         return child_genome
+
+    def __str__(self) -> str:
+        out = ""
+        for connection in self.connection_genes:
+            message = str(connection)
+            if out != "":
+                out += " "
+            out += f'{message:{" "}{"<"}{8}}'
+            out += "|"
+        return out

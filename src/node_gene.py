@@ -23,7 +23,8 @@ class NodeGene(Gene):
             elif self.__NODE_TYPE == NodeType.OUTPUT:
                 x_axis = 1.0
             else:
-                raise ValueError("Node type is not INPUT or OUTPUT, Please specify x_axis.")
+                x_axis = random.random()
+                # raise ValueError("Node type is not INPUT or OUTPUT, Please specify x_axis.")
         self.__X_AXIS = x_axis
 
     def copy(self) -> 'NodeGene':

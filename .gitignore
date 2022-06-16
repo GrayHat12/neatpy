@@ -6,3 +6,4 @@
 *.pem
 *.json
 .env
+\__pycache__

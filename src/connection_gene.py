@@ -1,5 +1,5 @@
 from typing import Optional
-from config import PROBABILITY_INDIVIDUAL_WEIGHT_REASSIGNMENT, WEIGHT_RANDOM_STRENGTH, WEIGHT_RANGE, WEIGHT_SHIFT_STRENGTH
+from config import PROBABILITY_INDIVIDUAL_WEIGHT_REASSIGNMENT, WEIGHT_RANDOM_STRENGTH, WEIGHT_SHIFT_STRENGTH
 from src.gene import Gene
 from src.node_gene import NodeGene
 import random
@@ -55,4 +55,4 @@ class ConnectionGene(Gene):
         return self.innovation_number
     
     def __str__(self) -> str:
-        return f"{self.innovation_number}:{str(self.from_node)}->{str(self.to_node)}"
+        return f"{self.innovation_number}:{str(self.from_node)}{'=>' if self.enabled else '->'}{str(self.to_node)}"
