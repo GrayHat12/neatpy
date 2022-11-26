@@ -1,13 +1,13 @@
-from enum import Enum
+from enum import IntEnum, auto
 
 
-class NodeType(Enum):
+class NodeType(IntEnum):
     """Node type enum."""
-    INPUT = 1
-    HIDDEN = 2
-    OUTPUT = 3
+    INPUT = auto()
+    HIDDEN = auto()
+    OUTPUT = auto()
 
-class Task(Enum):
-    CONNECTION_MUTATION = 1
-    NODE_MUTATION = 2
-    CONNECTION_UPDATE = 4
+class Task(IntEnum):
+    CONNECTION_MUTATION = auto()
+    NODE_MUTATION = auto()
+    CONNECTION_UPDATE = auto()

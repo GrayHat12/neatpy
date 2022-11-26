@@ -59,7 +59,7 @@ class Command:
     def execute_connection_update(self, genome: Genome) -> Genome:
         if not self.connection_innovation:
             self.connection_innovation = get_connection_innovation_number(self.from_innovation, self.to_innovation)
-        print('connection update for',self.connection_innovation)
+        # print('connection update for',self.connection_innovation)
         connection = genome.connection_genes.index(ConnectionGene(
             None, None, self.connection_innovation, enabled=self.connection_enabled, weight=self.connection_weight))
         if isinstance(self.connection_weight, float):

@@ -8,6 +8,10 @@ def update_connection_gene_store(from_node: int, to_node: int, value: int):
     })
 
 
+def get_next_node_innovation_number() -> int:
+    value = max(list(NODE_GENE_STORE.values())+[0]) + 1
+    return value
+
 def update_node_gene_store(value: int):
     if value not in list(NODE_GENE_STORE.values()):
         NODE_GENE_STORE.update({

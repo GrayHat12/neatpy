@@ -17,22 +17,22 @@ class NodeGene(Gene):
         if not isinstance(node_type, NodeType):
             node_type = NodeType.HIDDEN
         self.__NODE_TYPE = node_type
-        if not isinstance(x_axis, float):
-            if self.__NODE_TYPE == NodeType.INPUT:
-                x_axis = 0.0
-            elif self.__NODE_TYPE == NodeType.OUTPUT:
-                x_axis = 1.0
-            else:
-                x_axis = random.random()
-                # raise ValueError("Node type is not INPUT or OUTPUT, Please specify x_axis.")
+        if self.__NODE_TYPE == NodeType.INPUT:
+            x_axis = 0.0
+        elif self.__NODE_TYPE == NodeType.OUTPUT:
+            x_axis = 1.0
+        elif not (isinstance(x_axis, float) or isinstance(x_axis, int)):
+            print(x_axis,type(x_axis))
+            x_axis = random.uniform(0.1, 0.9)
+            # raise ValueError("Node type is not INPUT or OUTPUT, Please specify x_axis.")
         self.__X_AXIS = x_axis
 
     def copy(self) -> 'NodeGene':
         return NodeGene(
-            innovation_number=self._INNOVATION_NUMBER,
-            weight=self._weight,
-            node_type=self.__NODE_TYPE,
-            x_axis=self.__X_AXIS
+            innovation_number=self.innovation_number,
+            weight=self.weight,
+            node_type=self.node_type,
+            x_axis=self.x_axis
         )
 
     @property
